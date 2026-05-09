@@ -8,21 +8,11 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <style>
-    body { 
-      margin:0; padding:10px; background:#0a3d0a; color:white; 
-      font-family: Arial, sans-serif; text-align:center; 
-    }
-    h1 { margin: 15px 0; }
-    .player { 
-      background:#1a5c1a; margin:12px auto; padding:15px; 
-      border-radius:12px; max-width:340px; 
-    }
-    input, button { 
-      padding:12px; margin:6px; font-size:17px; border-radius:8px; 
-    }
-    button { 
-      background:#ffcc00; color:black; border:none; font-weight:bold;
-    }
+    body { margin:0; padding:10px; background:#0a3d0a; color:white; font-family:Arial; text-align:center; }
+    h1 { margin:15px 0; }
+    .player { background:#1a5c1a; margin:12px auto; padding:15px; border-radius:12px; max-width:340px; }
+    input, button { padding:12px; margin:6px; font-size:17px; border-radius:8px; }
+    button { background:#ffcc00; color:black; border:none; font-weight:bold; }
     .red-btn { background:#c00; color:white; }
   </style>
 </head>
@@ -49,6 +39,8 @@
   </div>
 
   <script>
+    console.log("Script načten");
+
     const firebaseConfig = {
       apiKey: "AIzaSyCwOIzKGHGHkwqNh3fwKT9zhp4vFHgr36I",
       authDomain: "kamas-poker.firebaseapp.com",
@@ -73,15 +65,10 @@
       document.getElementById('login').style.display = 'none';
       document.getElementById('game').style.display = 'block';
 
-      tableRef.child(myId).set({
-        name: myName,
-        chips: 5000,
-        bet: 0,
-        folded: false
-      });
+      tableRef.child(myId).set({ name: myName, chips: 5000, bet: 0, folded: false });
+      console.log("Připojen jako:", myName);
     }
 
-    // Real-time aktualizace
     tableRef.on('value', (snapshot) => {
       const data = snapshot.val() || {};
       let html = '';
@@ -90,20 +77,15 @@
       Object.keys(data).forEach(id => {
         const p = data[id];
         totalPot += Number(p.bet) || 0;
-        html += `
-          <div class="player">
-            <strong>${p.name}</strong><br>
-            Žetony: <b>${p.chips}</b><br>
-            Sázka: ${p.bet || 0}
-            ${p.folded ? ' <span style="color:red;">(folded)</span>' : ''}
-          </div>`;
+        html += `<div class="player"><strong>${p.name}</strong><br>Žetony: <b>${p.chips}</b><br>Sázka: ${p.bet || 0} ${p.folded ? '(folded)' : ''}</div>`;
       });
 
       document.getElementById('players').innerHTML = html;
       document.getElementById('pot').textContent = totalPot;
     });
 
-    function bet() {
+    window.bet = function() {
+      console.log("Vsadit kliknuto");
       const amount = parseInt(document.getElementById('amount').value) || 100;
       tableRef.child(myId).once('value', (snap) => {
         const p = snap.val();
@@ -114,17 +96,16 @@
           });
         }
       });
-    }
+    };
 
-    function fold() {
+    window.fold = function() {
+      console.log("Fold kliknuto");
       tableRef.child(myId).update({ folded: true });
-    }
+    };
 
-    function resetAll() {
-      if (confirm("Opravdu resetovat všem žetony na 5000?")) {
-        tableRef.remove();
-      }
-    }
+    window.resetAll = function() {
+      if (confirm("Resetovat všem?")) tableRef.remove();
+    };
 
     window.onbeforeunload = () => tableRef.child(myId).remove();
   </script>
