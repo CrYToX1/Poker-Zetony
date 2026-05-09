@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-  <title>Poker - Žetony</title>
+  <title>Kámoši Poker - Žetony</title>
   <link rel="manifest" href="manifest.json">
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -37,17 +37,15 @@
   </div>
 
   <script>
-    // === ZDE VLOŽ SVÉ FIREBASE DATA ===
     const firebaseConfig = {
-  apiKey: "AIzaSyCwOIzKGHGHkwqNh3fwKT9zhp4vFHgr36I",
-  authDomain: "kamas-poker.firebaseapp.com",
-  databaseURL: "https://kamas-poker-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "kamas-poker",
-  storageBucket: "kamas-poker.firebasestorage.app",
-  messagingSenderId: "834451733200",
-  appId: "1:834451733200:web:3c4d05a957026a01617cd5",
-  measurementId: "G-RS2XDZFGYK"
-  };
+      apiKey: "AIzaSyCwOIzKGHGHkwqNh3fwKT9zhp4vFHgr36I",
+      authDomain: "kamas-poker.firebaseapp.com",
+      databaseURL: "https://kamas-poker-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "kamas-poker",
+      storageBucket: "kamas-poker.firebasestorage.app",
+      messagingSenderId: "834451733200",
+      appId: "1:834451733200:web:3c4d05a957026a01617cd5"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -67,12 +65,10 @@
         name: myName,
         chips: 5000,
         bet: 0,
-        folded: false,
-        timestamp: Date.now()
+        folded: false
       });
     }
 
-    // Real-time aktualizace pro všechny
     tableRef.on('value', (snapshot) => {
       const data = snapshot.val() || {};
       let html = '';
@@ -80,7 +76,7 @@
 
       Object.keys(data).forEach(id => {
         const p = data[id];
-        totalPot += p.bet || 0;
+        totalPot += Number(p.bet) || 0;
         html += `
           <div class="player">
             <strong>${p.name}</strong><br>
@@ -112,12 +108,11 @@
     }
 
     function resetAll() {
-      if (confirm("Opravdu resetovat žetony všem na 5000?")) {
+      if (confirm("Resetovat všem žetony?")) {
         tableRef.remove();
       }
     }
 
-    // Odstranit sebe při zavření
     window.onbeforeunload = () => tableRef.child(myId).remove();
   </script>
 </body>
