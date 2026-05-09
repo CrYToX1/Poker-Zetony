@@ -39,7 +39,7 @@
   </div>
 
   <script>
-    console.log("Script načten");
+    console.log("App načtena");
 
     const firebaseConfig = {
       apiKey: "AIzaSyCwOIzKGHGHkwqNh3fwKT9zhp4vFHgr36I",
@@ -65,10 +65,17 @@
       document.getElementById('login').style.display = 'none';
       document.getElementById('game').style.display = 'block';
 
-      tableRef.child(myId).set({ name: myName, chips: 5000, bet: 0, folded: false });
-      console.log("Připojen jako:", myName);
+      // Přidání / aktualizace hráče
+      tableRef.child(myId).update({
+        name: myName,
+        chips: 5000,
+        bet: 0,
+        folded: false,
+        lastSeen: Date.now()
+      });
     }
 
+    // Real-time aktualizace
     tableRef.on('value', (snapshot) => {
       const data = snapshot.val() || {};
       let html = '';
@@ -77,7 +84,13 @@
       Object.keys(data).forEach(id => {
         const p = data[id];
         totalPot += Number(p.bet) || 0;
-        html += `<div class="player"><strong>${p.name}</strong><br>Žetony: <b>${p.chips}</b><br>Sázka: ${p.bet || 0} ${p.folded ? '(folded)' : ''}</div>`;
+        html += `
+          <div class="player">
+            <strong>${p.name}</strong><br>
+            Žetony: <b>${p.chips}</b><br>
+            Sázka: ${p.bet || 0}
+            ${p.folded ? ' <span style="color:red;">(folded)</span>' : ''}
+          </div>`;
       });
 
       document.getElementById('players').innerHTML = html;
@@ -85,29 +98,31 @@
     });
 
     window.bet = function() {
-      console.log("Vsadit kliknuto");
       const amount = parseInt(document.getElementById('amount').value) || 100;
       tableRef.child(myId).once('value', (snap) => {
         const p = snap.val();
         if (p && p.chips >= amount) {
           tableRef.child(myId).update({
             chips: p.chips - amount,
-            bet: (p.bet || 0) + amount
+            bet: (p.bet || 0) + amount,
+            lastSeen: Date.now()
           });
         }
       });
     };
 
     window.fold = function() {
-      console.log("Fold kliknuto");
-      tableRef.child(myId).update({ folded: true });
+      tableRef.child(myId).update({ folded: true, lastSeen: Date.now() });
     };
 
     window.resetAll = function() {
-      if (confirm("Resetovat všem?")) tableRef.remove();
+      if (confirm("Opravdu resetovat všechny žetony?")) {
+        tableRef.remove();
+      }
     };
 
-    window.onbeforeunload = () => tableRef.child(myId).remove();
-  </script>
+    // Už nesmažeme hráče při odchodu
+    // window.onbeforeunload = () => tableRef.child(myId).remove();
+</script>
 </body>
 </html>
