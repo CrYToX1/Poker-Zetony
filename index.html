@@ -55,7 +55,7 @@
 
     let myId = 'p_' + Math.random().toString(36).substr(2, 9);
     let myName = "";
-    const ADMIN_NAME = "Vasek";        // ← tady můžeš změnit jméno admina
+    const ADMIN_NAME = "Vasek";   // ← změň pokud chceš
 
     function isAdmin() {
       return myName.toLowerCase() === ADMIN_NAME.toLowerCase();
@@ -68,14 +68,20 @@
       document.getElementById('login').style.display = 'none';
       document.getElementById('game').style.display = 'block';
 
-      tableRef.child(myId).set({
+      const playerRef = tableRef.child(myId);
+      
+      playerRef.set({
         name: myName,
         chips: 5000,
         bet: 0,
         folded: false
       });
+
+      // Automatické smazání při odpojení
+      playerRef.onDisconnect().remove();
     }
 
+    // Real-time aktualizace
     tableRef.on('value', (snapshot) => {
       const data = snapshot.val() || {};
       let html = '';
@@ -105,7 +111,6 @@
       document.getElementById('players').innerHTML = html;
       document.getElementById('pot').textContent = totalPot;
 
-      // Zobrazit/Skrýt reset tlačítko jen pro admina
       const resetBtn = document.querySelector('.red-btn');
       if (resetBtn) resetBtn.style.display = isAdmin() ? 'inline-block' : 'none';
     });
@@ -114,7 +119,7 @@
       const amount = parseInt(document.getElementById('amount').value) || 100;
       tableRef.child(myId).once('value', (snap) => {
         const p = snap.val() || {};
-        if (p.chips >= amount) {
+        if ((p.chips || 0) >= amount) {
           tableRef.child(myId).update({
             chips: p.chips - amount,
             bet: (p.bet || 0) + amount
@@ -129,7 +134,7 @@
 
     window.awardWin = function(winnerId) {
       if (!isAdmin()) return;
-
+      // ... (stejná funkce jako minule)
       tableRef.once('value', (snapshot) => {
         const data = snapshot.val() || {};
         let pot = 0;
@@ -146,7 +151,6 @@
               folded: false
             });
 
-            // Vynulovat sázky všem
             Object.keys(data).forEach(id => {
               tableRef.child(id).update({ bet: 0, folded: false });
             });
@@ -158,18 +162,7 @@
     window.resetAll = function() {
       if (!isAdmin()) return;
       if (confirm("Opravdu resetovat všechny žetony na 5000?")) {
-        tableRef.remove().then(() => {
-          if (myName) {
-            setTimeout(() => {
-              tableRef.child(myId).set({
-                name: myName,
-                chips: 5000,
-                bet: 0,
-                folded: false
-              });
-            }, 600);
-          }
-        });
+        tableRef.remove();
       }
     };
 </script>
