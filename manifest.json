@@ -1,9 +1,21 @@
 {
-  "name": "Zetony",
-  "short_name": "Žetony",
-  "start_url": "/",
+  "name": "Kámoši Poker - Žetony",
+  "short_name": "Poker - Žetony",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#0a3d0a",
   "theme_color": "#ffcc00",
-  "icons": [{ "src": "icon.png", "sizes": "192x192", "type": "image/png" }]
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
