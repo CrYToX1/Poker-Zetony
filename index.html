@@ -8,14 +8,26 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <style>
-    body { margin:0; padding:10px; background:#0a3d0a; color:white; font-family:Arial; text-align:center; }
-    .player { background:#1a5c1a; margin:12px auto; padding:15px; border-radius:12px; max-width:340px; }
-    button { padding:14px 24px; margin:8px; font-size:17px; border:none; border-radius:8px; }
-    input { padding:12px; font-size:17px; width:140px; }
+    body { 
+      margin:0; padding:10px; background:#0a3d0a; color:white; 
+      font-family: Arial, sans-serif; text-align:center; 
+    }
+    h1 { margin: 15px 0; }
+    .player { 
+      background:#1a5c1a; margin:12px auto; padding:15px; 
+      border-radius:12px; max-width:340px; 
+    }
+    input, button { 
+      padding:12px; margin:6px; font-size:17px; border-radius:8px; 
+    }
+    button { 
+      background:#ffcc00; color:black; border:none; font-weight:bold;
+    }
+    .red-btn { background:#c00; color:white; }
   </style>
 </head>
 <body>
-  <h1>Poker - Žetony</h1>
+  <h1>Kámoši Poker - Žetony</h1>
 
   <div id="login">
     <input type="text" id="name" placeholder="Tvoje jméno" style="padding:12px; width:80%; font-size:18px;">
@@ -28,12 +40,12 @@
     <div id="players"></div>
 
     <div style="margin:25px 0;">
-      <input type="number" id="amount" value="100">
+      <input type="number" id="amount" value="100" style="width:130px">
       <button onclick="bet()">Vsadit</button>
       <button onclick="fold()">Fold</button>
     </div>
 
-    <button onclick="resetAll()" style="background:#c00; color:white; padding:12px 30px;">Reset všem žetony</button>
+    <button onclick="resetAll()" class="red-btn">Reset všem žetony</button>
   </div>
 
   <script>
@@ -69,6 +81,7 @@
       });
     }
 
+    // Real-time aktualizace
     tableRef.on('value', (snapshot) => {
       const data = snapshot.val() || {};
       let html = '';
@@ -108,7 +121,7 @@
     }
 
     function resetAll() {
-      if (confirm("Resetovat všem žetony?")) {
+      if (confirm("Opravdu resetovat všem žetony na 5000?")) {
         tableRef.remove();
       }
     }
