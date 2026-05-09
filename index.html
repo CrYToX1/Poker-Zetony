@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <title>Zetony</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body { margin:0; padding:10px; background:#0a3d0a; color:white; font-family:Arial; text-align:center; }
+    .player { background:#1a5c1a; margin:10px auto; padding:15px; border-radius:12px; max-width:340px; }
+    input, button { padding:12px; margin:5px; font-size:17px; border-radius:8px; }
+    button { background:#ffcc00; color:black; border:none; }
+    .red { background:#c00; color:white; }
+  </style>
+</head>
+<body>
+  <h1>Zetony</h1>
+
+  <div id="login">
+    <input type="text" id="name" placeholder="Tvoje jméno" style="width:80%; padding:12px;">
+    <br><br>
+    <button onclick="addPlayer()">Přidat sebe ke stolu</button>
+  </div>
+
+  <div id="game" style="display:none">
+    <h2>Pot: <span id="pot">0</span></h2>
+    <div id="playersList"></div>
+
+    <div style="margin:20px 0;">
+      <input type="number" id="betAmount" value="100" style="width:140px">
+      <button onclick="makeBet()">Vsadit</button>
+      <button onclick="foldPlayer()">Fold (vyřadit)</button>
+    </div>
+
+    <button onclick="resetAll()" class="red">Reset všem žetony (5000)</button>
+  </div>
+
+  <script>
+    let players = {};
+    let myId = 'p_' + Math.random().toString(36).substr(2,8);
+    let myName = "";
+
+    function addPlayer() {
+      myName = document.getElementById('name').value.trim();
+      if (!myName) return alert("Zadej jméno");
+
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+
+      players[myId] = { name: myName, chips: 5000, bet: 0, folded: false };
+      render();
+    }
+
+    function makeBet() {
+      const amount = parseInt(document.getElementById('betAmount').value) || 100;
+      if (!players[myId] || players[myId].chips < amount) return alert("Nemáš dost žetonů");
+
+      players[myId].chips -= amount;
+      players[myId].bet += amount;
+      render();
+    }
+
+    function foldPlayer() {
+      if (confirm("Fold?")) {
+        players[myId].folded = true;
+        render();
+      }
+    }
+
+    function resetAll() {
+      if (confirm("Resetovat všem žetony na 5000?")) {
+        Object.keys(players).forEach(id => {
+          players[id].chips = 5000;
+          players[id].bet = 0;
+          players[id].folded = false;
+        });
+        render();
+      }
+    }
+
+    function render() {
+      let html = '';
+      let totalPot = 0;
+
+      Object.values(players).forEach(p => {
+        totalPot += p.bet;
+        html += `
+          <div class="player">
+            <strong>${p.name}</strong><br>
+            Žetony: <b>${p.chips}</b><br>
+            Sázka: ${p.bet}
+            ${p.folded ? ' <span style="color:red;">(folded)</span>' : ''}
+          </div>`;
+      });
+
+      document.getElementById('playersList').innerHTML = html;
+      document.getElementById('pot').textContent = totalPot;
+    }
+
+    // Uložení do localStorage (aby to zůstalo po obnovení stránky)
+    window.onbeforeunload = () => localStorage.setItem('kamasPoker', JSON.stringify(players));
+    if (localStorage.getItem('kamasPoker')) {
+      players = JSON.parse(localStorage.getItem('kamasPoker'));
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+      render();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "Zetony",
+  "short_name": "Žetony",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a3d0a",
+  "theme_color": "#ffcc00",
+  "icons": [{ "src": "icon.png", "sizes": "192x192", "type": "image/png" }]
+}
