@@ -17,7 +17,7 @@
   </style>
 </head>
 <body>
-  <h1>Kámoši Poker - Žetony</h1>
+  <h1>Poker - Žetony</h1>
 
   <div id="login">
     <input type="text" id="name" placeholder="Tvoje jméno" style="padding:12px; width:80%; font-size:18px;">
@@ -55,6 +55,11 @@
 
     let myId = 'p_' + Math.random().toString(36).substr(2, 9);
     let myName = "";
+    const ADMIN_NAME = "Vasek";        // ← tady můžeš změnit jméno admina
+
+    function isAdmin() {
+      return myName.toLowerCase() === ADMIN_NAME.toLowerCase();
+    }
 
     function joinGame() {
       myName = document.getElementById('name').value.trim();
@@ -71,7 +76,6 @@
       });
     }
 
-    // Real-time update - vylepšené
     tableRef.on('value', (snapshot) => {
       const data = snapshot.val() || {};
       let html = '';
@@ -79,31 +83,37 @@
 
       Object.keys(data).forEach(id => {
         const p = data[id];
-        if (!p || !p.name) return;   // přeskočí poškozené záznamy
+        if (!p || !p.name) return;
 
         totalPot += Number(p.bet) || 0;
+
+        let winButton = '';
+        if (isAdmin()) {
+          winButton = `<br><button onclick="awardWin('${id}')" style="background:#00c000; color:white; padding:6px 12px; font-size:14px; margin-top:8px;">Vyhrál</button>`;
+        }
+
         html += `
           <div class="player">
             <strong>${p.name}</strong><br>
             Žetony: <b>${p.chips || 0}</b><br>
             Sázka: ${p.bet || 0}
             ${p.folded ? ' <span style="color:red;">(folded)</span>' : ''}
+            ${winButton}
           </div>`;
       });
 
       document.getElementById('players').innerHTML = html;
       document.getElementById('pot').textContent = totalPot;
+
+      // Zobrazit/Skrýt reset tlačítko jen pro admina
+      const resetBtn = document.querySelector('.red-btn');
+      if (resetBtn) resetBtn.style.display = isAdmin() ? 'inline-block' : 'none';
     });
 
     window.bet = function() {
       const amount = parseInt(document.getElementById('amount').value) || 100;
       tableRef.child(myId).once('value', (snap) => {
-        let p = snap.val();
-        if (!p) {
-          // Pokud hráč neexistuje po resetu, vytvoříme ho znovu
-          tableRef.child(myId).set({ name: myName || "Hráč", chips: 5000, bet: 0, folded: false });
-          return;
-        }
+        const p = snap.val() || {};
         if (p.chips >= amount) {
           tableRef.child(myId).update({
             chips: p.chips - amount,
@@ -117,10 +127,38 @@
       tableRef.child(myId).update({ folded: true });
     };
 
+    window.awardWin = function(winnerId) {
+      if (!isAdmin()) return;
+
+      tableRef.once('value', (snapshot) => {
+        const data = snapshot.val() || {};
+        let pot = 0;
+        Object.keys(data).forEach(id => pot += Number(data[id].bet) || 0);
+
+        if (pot === 0) return alert("Pot je prázdný");
+
+        if (confirm(`Přičíst pot (${pot}) hráči ${data[winnerId]?.name}?`)) {
+          tableRef.child(winnerId).once('value', (snap) => {
+            const winner = snap.val();
+            tableRef.child(winnerId).update({
+              chips: (winner.chips || 0) + pot,
+              bet: 0,
+              folded: false
+            });
+
+            // Vynulovat sázky všem
+            Object.keys(data).forEach(id => {
+              tableRef.child(id).update({ bet: 0, folded: false });
+            });
+          });
+        }
+      });
+    };
+
     window.resetAll = function() {
-      if (confirm("Opravdu resetovat všechny žetony?")) {
+      if (!isAdmin()) return;
+      if (confirm("Opravdu resetovat všechny žetony na 5000?")) {
         tableRef.remove().then(() => {
-          // Po resetu se hráč znovu přihlásí
           if (myName) {
             setTimeout(() => {
               tableRef.child(myId).set({
@@ -129,7 +167,7 @@
                 bet: 0,
                 folded: false
               });
-            }, 800);
+            }, 600);
           }
         });
       }
